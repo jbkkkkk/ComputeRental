@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-rental
+    environment:
+      POSTGRES_DB: serverrentaldb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rental-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rental-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=serverrentaldb;Username=postgres;Password=postgres
+    ports:
+      - "5000:8080"
+      - "5001:443"
+    depends_on:
+      - postgres
+    networks:
+      - rental-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+
+networks:
+  rental-network:
+    driver: bridge
